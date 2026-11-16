@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>dev.rodehorst.edge-bridge</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/jonas/.local/bin/node</string>
+    <string>/Users/jonas/projects/edge-bridge/src/daemon.ts</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/jonas/projects/edge-bridge</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/jonas/Library/Logs/edge-bridge.log</string>
+  <key>StandardErrorPath</key><string>/Users/jonas/Library/Logs/edge-bridge.log</string>
+</dict>
+</plist>

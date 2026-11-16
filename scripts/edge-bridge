@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /Users/jonas/.local/bin/node /Users/jonas/projects/edge-bridge/src/cli.ts "$@"

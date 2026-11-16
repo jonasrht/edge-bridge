@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root { --bg: #fff; --fg: #1b1b1b; --muted: #6b6b6b; --line: #e3e3e3; --ok: #1a7f37; --off: #9a6700; --accent: #0e639c; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #202124; --fg: #e8e8e8; --muted: #a0a0a0; --line: #3a3b3e; --ok: #4ac26b; --off: #d4a72c; --accent: #4aa3e0; } }
+    body { margin: 0; width: 300px; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, -apple-system, sans-serif; }
+    main { padding: 14px 16px 16px; display: grid; gap: 12px; }
+    h1 { font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+    .dot.connected { background: var(--ok); }
+    .status { color: var(--muted); }
+    label { display: grid; gap: 4px; font-weight: 600; }
+    input[type=text], select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--fg); }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .hint { color: var(--muted); font-size: 12px; margin: 0; }
+    button { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1><span id="dot" class="dot"></span>Edge Bridge</h1>
+    <div class="status" id="status">…</div>
+    <label>Name dieses Profils für den Agenten
+      <input type="text" id="label" placeholder="z. B. privat, blackfield" maxlength="40">
+    </label>
+    <p class="hint" id="email"></p>
+    <div class="row">
+      <span>Agent darf diesen Browser steuern</span>
+      <input type="checkbox" id="enabled">
+    </div>
+    <label>Neue Agent-Tabs
+      <select id="tabMode">
+        <option value="group">Vorne im aktuellen Fenster (Gruppe „Agent“)</option>
+        <option value="window">Eigenes Fenster im Hintergrund</option>
+      </select>
+    </label>
+    <div class="row">
+      <button id="showWindow">Agent-Tabs zeigen</button>
+    </div>
+  </main>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
