@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Edge Bridge",
   "version": "0.2.0",
-  "description": "Lässt lokale KI-Agenten (Claude Code per MCP) diesen Browser steuern – mit deinen Logins, pro Profil.",
+  "description": "__MSG_extDescription__",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3UMVvxbnspX8Cde6n3TR3ubJsUhiGVYoWPUbJP5vWGcRfxQoeTwhGYE430ieEu8T6OOaPG53GRe+g1u4uOHLQgoVCokoUHdAMeHFX5QkzpVUPg7FOWLdhJNsWVL+X9fzfee3Ya5+k2I4v89Tpwj+bOJ2tF8Tvqa2VJioxVFxMBXKY69CTtFhbxKsLmIWdxWiQ7ia0c6A8a/oatd5rJYpo8XDyYh5iHBBfu1ycdNv1fA1LVfYgg1RpURZKXZKk8kbYWMsXr+oJCthmdo3IgAdLUtMlHdPfGnr2zxNhBE0OFND2yis5fGLimOv5Jb64h36WSBS5Mk/PYCGgsYPRrqfXwIDAQAB",
   "minimum_chrome_version": "120",
   "permissions": [
@@ -37,5 +37,6 @@
     "32": "icons/32.png",
     "48": "icons/48.png",
     "128": "icons/128.png"
-  }
+  },
+  "default_locale": "en"
 }

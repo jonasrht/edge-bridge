@@ -1,2 +1,3 @@
 #!/bin/sh
-exec /Users/jonas/.local/bin/node /Users/jonas/projects/edge-bridge/src/cli.ts "$@"
+self=$(readlink -f "$0" 2>/dev/null || echo "$0")
+exec node "$(dirname "$self")/../src/cli.ts" "$@"

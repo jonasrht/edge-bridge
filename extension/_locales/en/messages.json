@@ -1,0 +1,92 @@
+{
+  "extDescription": {
+    "message": "Lets local AI agents (Claude Code via MCP, or a CLI) drive this browser – with your logins, per profile."
+  },
+  "badgeOff": {
+    "message": "off"
+  },
+  "quote": {
+    "message": "“$1”"
+  },
+  "actOpen": {
+    "message": "opening $1"
+  },
+  "actClick": {
+    "message": "clicking $1"
+  },
+  "actClickHere": {
+    "message": "clicking here"
+  },
+  "actHover": {
+    "message": "pointing at $1"
+  },
+  "actTypeInto": {
+    "message": "typing into $1"
+  },
+  "actType": {
+    "message": "typing"
+  },
+  "actSelect": {
+    "message": "selecting $1"
+  },
+  "actKey": {
+    "message": "pressing $1"
+  },
+  "actScrollUp": {
+    "message": "scrolling up"
+  },
+  "actScrollDown": {
+    "message": "scrolling down"
+  },
+  "actScrollLeft": {
+    "message": "scrolling left"
+  },
+  "actScrollRight": {
+    "message": "scrolling right"
+  },
+  "actUploadOne": {
+    "message": "uploading 1 file"
+  },
+  "actUploadMany": {
+    "message": "uploading $1 files"
+  },
+  "statusConnected": {
+    "message": "Connected as “$1”"
+  },
+  "statusDisconnected": {
+    "message": "Not connected – is the edge-bridge daemon running?"
+  },
+  "statusDisabled": {
+    "message": "Turned off"
+  },
+  "labelName": {
+    "message": "Profile name for the agent"
+  },
+  "labelPlaceholder": {
+    "message": "e.g. personal, work"
+  },
+  "emailKnown": {
+    "message": "Signed in as $1. Without a custom name the agent uses the Edge profile name."
+  },
+  "emailUnknown": {
+    "message": "No account detected. Give this profile a name so the agent can find it."
+  },
+  "labelEnabled": {
+    "message": "Allow the agent to control this browser"
+  },
+  "labelTabMode": {
+    "message": "New agent tabs"
+  },
+  "tabModeGroup": {
+    "message": "Current window, group “Agent”"
+  },
+  "tabModeWindow": {
+    "message": "Separate background window"
+  },
+  "showTabs": {
+    "message": "Show agent tab"
+  },
+  "noAgentTab": {
+    "message": "The agent has no tab open right now."
+  }
+}

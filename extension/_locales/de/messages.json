@@ -1,0 +1,92 @@
+{
+  "extDescription": {
+    "message": "Lässt lokale KI-Agenten (Claude Code per MCP oder eine CLI) diesen Browser steuern – mit deinen Logins, pro Profil."
+  },
+  "badgeOff": {
+    "message": "aus"
+  },
+  "quote": {
+    "message": "„$1“"
+  },
+  "actOpen": {
+    "message": "öffnet $1"
+  },
+  "actClick": {
+    "message": "klickt $1"
+  },
+  "actClickHere": {
+    "message": "klickt hier"
+  },
+  "actHover": {
+    "message": "zeigt auf $1"
+  },
+  "actTypeInto": {
+    "message": "tippt in $1"
+  },
+  "actType": {
+    "message": "tippt"
+  },
+  "actSelect": {
+    "message": "wählt $1"
+  },
+  "actKey": {
+    "message": "drückt $1"
+  },
+  "actScrollUp": {
+    "message": "scrollt nach oben"
+  },
+  "actScrollDown": {
+    "message": "scrollt nach unten"
+  },
+  "actScrollLeft": {
+    "message": "scrollt nach links"
+  },
+  "actScrollRight": {
+    "message": "scrollt nach rechts"
+  },
+  "actUploadOne": {
+    "message": "lädt 1 Datei hoch"
+  },
+  "actUploadMany": {
+    "message": "lädt $1 Dateien hoch"
+  },
+  "statusConnected": {
+    "message": "Verbunden als „$1“"
+  },
+  "statusDisconnected": {
+    "message": "Nicht verbunden – läuft der edge-bridge-Dienst?"
+  },
+  "statusDisabled": {
+    "message": "Ausgeschaltet"
+  },
+  "labelName": {
+    "message": "Name dieses Profils für den Agenten"
+  },
+  "labelPlaceholder": {
+    "message": "z. B. privat, arbeit"
+  },
+  "emailKnown": {
+    "message": "Angemeldet als $1. Ohne eigenen Namen nutzt der Agent den Edge-Profilnamen."
+  },
+  "emailUnknown": {
+    "message": "Kein Konto erkannt. Bitte einen Namen vergeben, damit der Agent das Profil findet."
+  },
+  "labelEnabled": {
+    "message": "Agent darf diesen Browser steuern"
+  },
+  "labelTabMode": {
+    "message": "Neue Agent-Tabs"
+  },
+  "tabModeGroup": {
+    "message": "Aktuelles Fenster, Gruppe „Agent“"
+  },
+  "tabModeWindow": {
+    "message": "Eigenes Fenster im Hintergrund"
+  },
+  "showTabs": {
+    "message": "Agent-Tab zeigen"
+  },
+  "noAgentTab": {
+    "message": "Der Agent hat gerade keinen Tab offen."
+  }
+}

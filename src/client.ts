@@ -23,7 +23,7 @@ export async function ensureDaemon(): Promise<void> {
     await new Promise((r) => setTimeout(r, 250));
     if (await healthy()) return;
   }
-  throw new Error(`edge-bridge daemon antwortet nicht auf ${BASE}`);
+  throw new Error(`edge-bridge daemon not responding at ${BASE}`);
 }
 
 export async function call(action: string, args: Record<string, unknown> = {}, profile?: string): Promise<unknown> {

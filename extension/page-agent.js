@@ -24,13 +24,13 @@ export function pageAgent(cmd, a) {
 
   function findEl() {
     const sel = a.ref ? `[${ATTR}="${a.ref}"]` : a.selector;
-    if (!sel) throw new Error('ref oder selector angeben');
+    if (!sel) throw new Error('Pass ref or selector');
     for (const r of roots(document)) {
       const hit = r.querySelector(sel);
       if (hit) return hit;
     }
     throw new Error(
-      a.ref ? `Element ${a.ref} nicht gefunden. Die Seite hat sich geändert, bitte neuen snapshot holen.` : `Kein Element für Selektor ${a.selector}`,
+      a.ref ? `Element ${a.ref} not found. The page has changed, take a new snapshot.` : `No element matches selector ${a.selector}`,
     );
   }
 
@@ -111,7 +111,13 @@ export function pageAgent(cmd, a) {
     const tag = el.tagName;
     if (tag === 'IMG') return el.alt || el.title || '';
     if (el.labels?.length) {
-      const t = [...el.labels].map((l) => l.innerText).join(' ');
+      const t = [...el.labels]
+        .map((l) => {
+          const c = l.cloneNode(true);
+          c.querySelectorAll('select, textarea, input, button').forEach((n) => n.remove());
+          return c.textContent;
+        })
+        .join(' ');
       if (t.trim()) return t;
     }
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
@@ -203,7 +209,7 @@ export function pageAgent(cmd, a) {
     const walk = (el, depth, parentPointer, inInteractive) => {
       if (truncated || SKIP.has(el.tagName)) return;
       if (el.tagName === 'INPUT' && el.type === 'file' && !visible(el)) {
-        push(depth, `file-upload ${q(clip(nameOf(el), 60))} [ref=${refFor(el)}] [unsichtbar, upload_file trotzdem möglich]`);
+        push(depth, `file-upload ${q(clip(nameOf(el), 60))} [ref=${refFor(el)}] [hidden, upload_file still works]`);
         return;
       }
       if (el.getAttribute('aria-hidden') === 'true') return;
@@ -268,7 +274,7 @@ export function pageAgent(cmd, a) {
           push(depth, `iframe ${q(clip(el.getAttribute('title') || el.src, 80))}`);
           walk(doc.body, depth + 1, false, inInteractive);
         } else if (isVisible) {
-          push(depth, `iframe ${q(clip(el.src, 80))} [fremde Herkunft, Inhalt nicht lesbar – Klicks per x/y aus screenshot]`);
+          push(depth, `iframe ${q(clip(el.src, 80))} [cross-origin, content not readable – click by x/y from a screenshot]`);
         }
         return;
       } else if (isVisible && CONTAINERS.has(role)) {
@@ -288,11 +294,11 @@ export function pageAgent(cmd, a) {
     window.__ebNext = next;
     const head = [
       `URL: ${location.href}`,
-      `Titel: ${document.title}`,
-      `Scroll: ${Math.round(scrollY)} von ${Math.max(0, document.documentElement.scrollHeight - innerHeight)} px`,
+      `Title: ${document.title}`,
+      `Scroll: ${Math.round(scrollY)} of ${Math.max(0, document.documentElement.scrollHeight - innerHeight)} px`,
       '',
     ];
-    if (truncated) lines.push(`… gekürzt bei ${a.maxChars} Zeichen. Für mehr: maxChars erhöhen, scrollen oder get_text.`);
+    if (truncated) lines.push(`… truncated at ${a.maxChars} characters. For more: raise maxChars, scroll, or use get_text.`);
     return head.join('\n') + lines.join('\n');
   }
 
@@ -305,7 +311,7 @@ export function pageAgent(cmd, a) {
       if (cmd === 'rect') {
         return { x: r.left + off.x + scrollX, y: r.top + off.y + scrollY, width: Math.max(1, r.width), height: Math.max(1, r.height) };
       }
-      if (r.width === 0 && r.height === 0) throw new Error('Element ist nicht sichtbar (Größe 0). Evtl. erst Menü öffnen oder scrollen.');
+      if (r.width === 0 && r.height === 0) throw new Error('Element is not visible (size 0). Open its menu or scroll first.');
       const lx = r.left + Math.min(r.width / 2, Math.max(1, r.width - 1));
       const ly = r.top + Math.min(r.height / 2, Math.max(1, r.height - 1));
       const hit = deepHit(el.ownerDocument, lx, ly);
@@ -350,11 +356,11 @@ export function pageAgent(cmd, a) {
 
     if (cmd === 'selectOption') {
       const el = findEl();
-      if (el.tagName !== 'SELECT') throw new Error('Element ist kein <select>. Für eigene Dropdowns: click auf das Feld, dann auf die Option.');
+      if (el.tagName !== 'SELECT') throw new Error('Element is not a <select>. For custom dropdowns: click the field, then the option.');
       const want = String(a.value);
       const opt = [...el.options].find((o) => o.value === want) || [...el.options].find((o) => o.text.trim() === want.trim()) ||
         [...el.options].find((o) => o.text.toLowerCase().includes(want.toLowerCase()));
-      if (!opt) throw new Error(`Option "${want}" nicht gefunden. Verfügbar: ${[...el.options].map((o) => o.text).slice(0, 30).join(' | ')}`);
+      if (!opt) throw new Error(`Option "${want}" not found. Available: ${[...el.options].map((o) => o.text).slice(0, 30).join(' | ')}`);
       el.value = opt.value;
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -372,7 +378,7 @@ export function pageAgent(cmd, a) {
 
     if (cmd === 'text') {
       const t = document.body?.innerText || '';
-      return { url: location.href, title: document.title, text: t.length > a.maxChars ? t.slice(0, a.maxChars) + '\n… (gekürzt)' : t, totalChars: t.length };
+      return { url: location.href, title: document.title, text: t.length > a.maxChars ? t.slice(0, a.maxChars) + '\n… (truncated)' : t, totalChars: t.length };
     }
 
     if (cmd === 'check') {

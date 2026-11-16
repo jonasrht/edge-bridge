@@ -1,20 +1,21 @@
 import { call, ensureDaemon } from './client.ts';
 import { HOST, PORT, readToken } from './config.ts';
 
-const USAGE = `edge-bridge – steuert Edge-Profile über die Edge-Bridge-Erweiterung
+const USAGE = `edge-bridge – drive Edge profiles through the Edge Bridge extension
 
   edge-bridge status
-  edge-bridge <aktion> ['<json-args>'] [-p <profil>]
+  edge-bridge <action> ['<json-args>'] [-p <profile>]
 
-Beispiele:
+Examples:
   edge-bridge list_profiles
-  edge-bridge navigate '{"url":"example.com"}' -p privat
-  edge-bridge snapshot -p privat
-  edge-bridge click '{"ref":"e12"}' -p privat
-  edge-bridge screenshot -p privat
+  edge-bridge navigate '{"url":"example.com"}' -p work
+  edge-bridge snapshot -p work
+  edge-bridge click '{"ref":"e12"}' -p work
+  edge-bridge screenshot -p work
 
-Aktionen: list_profiles list_tabs navigate select_tab close_tab history snapshot get_text
-          click hover type select_option press_key scroll screenshot evaluate wait_for upload_file`;
+Actions: list_profiles list_tabs navigate select_tab close_tab history snapshot get_text
+          click hover type select_option press_key scroll screenshot evaluate wait_for upload_file
+          reload_extension`;
 
 const argv = process.argv.slice(2);
 let profile: string | undefined;
@@ -42,6 +43,6 @@ try {
     else console.log(JSON.stringify(data, null, 2));
   }
 } catch (err) {
-  console.error(`Fehler: ${err instanceof Error ? err.message : err}`);
+  console.error(`Error: ${err instanceof Error ? err.message : err}`);
   process.exit(1);
 }

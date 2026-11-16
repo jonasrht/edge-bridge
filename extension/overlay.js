@@ -64,7 +64,7 @@ export function agentOverlay(cmd, a = {}) {
   txt.replaceChildren();
   const b = document.createElement('b');
   b.textContent = 'Agent';
-  txt.append(b, ` · ${a.label || 'arbeitet'}`);
+  txt.append(b, ` · ${a.label || '…'}`);
   wrap.classList.add('on');
 
   if (typeof a.x === 'number' && typeof a.y === 'number') {

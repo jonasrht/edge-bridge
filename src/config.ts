@@ -8,7 +8,12 @@ export const PORT = Number(process.env.EDGE_BRIDGE_PORT ?? 10087);
 export const HOME_DIR = path.join(os.homedir(), '.edge-bridge');
 export const TOKEN_FILE = path.join(HOME_DIR, 'token');
 export const SHOTS_DIR = path.join(HOME_DIR, 'shots');
-export const EDGE_LOCAL_STATE = path.join(os.homedir(), 'Library/Application Support/Microsoft Edge/Local State');
+export const EDGE_LOCAL_STATE =
+  process.platform === 'darwin'
+    ? path.join(os.homedir(), 'Library/Application Support/Microsoft Edge/Local State')
+    : process.platform === 'win32'
+      ? path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), 'AppData/Local'), 'Microsoft/Edge/User Data/Local State')
+      : path.join(os.homedir(), '.config/microsoft-edge/Local State');
 
 export const EXTENSION_IDS = new Set(
   (process.env.EDGE_BRIDGE_EXTENSION_IDS ?? 'kfjjmfgccekckgnegnjdbbloopmjdidk').split(',').map((s) => s.trim()),

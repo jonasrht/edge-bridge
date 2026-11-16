@@ -60,11 +60,11 @@ function describe(e: Ext) {
 function findExt(profile: unknown): Ext {
   const list = [...exts.values()];
   if (list.length === 0) {
-    throw new Error('Kein Edge-Profil verbunden. Läuft Edge, und ist die Edge-Bridge-Erweiterung im Profil installiert und eingeschaltet?');
+    throw new Error('No Edge profile connected. Is Edge running, and is the Edge Bridge extension installed and enabled in the profile?');
   }
   if (profile == null || profile === '') {
     if (list.length === 1) return list[0];
-    throw new Error(`Mehrere Profile verbunden, bitte "profile" angeben: ${list.map(labelOf).join(', ')}`);
+    throw new Error(`Several profiles connected, pass "profile": ${list.map(labelOf).join(', ')}`);
   }
   const q = String(profile).toLowerCase();
   const keys = (e: Ext) =>
@@ -74,8 +74,8 @@ function findExt(profile: unknown): Ext {
   const partial = list.filter((e) => keys(e).some((k) => k.includes(q)));
   if (partial.length === 1) return partial[0];
   const hits = exact.length > 1 ? exact : partial;
-  if (hits.length > 1) throw new Error(`"${profile}" ist mehrdeutig: ${hits.map(labelOf).join(', ')}`);
-  throw new Error(`Profil "${profile}" nicht verbunden. Verbunden: ${list.map(labelOf).join(', ')}`);
+  if (hits.length > 1) throw new Error(`"${profile}" is ambiguous: ${hits.map(labelOf).join(', ')}`);
+  throw new Error(`Profile "${profile}" is not connected. Connected: ${list.map(labelOf).join(', ')}`);
 }
 
 function send(e: Ext, action: string, args: Record<string, unknown>, timeoutMs: number): Promise<unknown> {
@@ -83,7 +83,7 @@ function send(e: Ext, action: string, args: Record<string, unknown>, timeoutMs: 
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       e.pending.delete(id);
-      reject(new Error(`Zeitüberschreitung nach ${Math.round(timeoutMs / 1000)} s bei "${action}"`));
+      reject(new Error(`"${action}" timed out after ${Math.round(timeoutMs / 1000)} s`));
     }, timeoutMs);
     e.pending.set(id, { resolve, reject, timer });
     e.ws.send(JSON.stringify({ type: 'command', id, action, args }));
@@ -220,14 +220,14 @@ function onExtension(ws: WebSocket): void {
       ext.pending.delete(String(msg.id));
       clearTimeout(p.timer);
       if (msg.ok) p.resolve(msg.data);
-      else p.reject(new Error(String((msg.error as { message?: string })?.message ?? msg.error ?? 'Fehler in der Erweiterung')));
+      else p.reject(new Error(String((msg.error as { message?: string })?.message ?? msg.error ?? 'Extension error')));
     }
   });
   ws.on('close', () => {
     if (!ext) return;
     for (const p of ext.pending.values()) {
       clearTimeout(p.timer);
-      p.reject(new Error('Verbindung zum Profil wurde getrennt'));
+      p.reject(new Error('Connection to the profile was lost'));
     }
     if (exts.get(ext.instanceId)?.ws === ws) {
       exts.delete(ext.instanceId);

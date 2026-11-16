@@ -11,6 +11,8 @@ let retryDelay = 1000;
 let retryTimer = null;
 let pingTimer = null;
 
+const t = (key, ...subs) => chrome.i18n.getMessage(key, subs.map(String)) || key;
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function settings() {
@@ -41,7 +43,7 @@ async function profileEmail() {
 
 async function setStatus(status, profile) {
   await chrome.storage.session.set({ status, profile: profile ?? null });
-  await chrome.action.setBadgeText({ text: status === 'connected' ? '' : 'aus' });
+  await chrome.action.setBadgeText({ text: status === 'connected' ? '' : t('badgeOff') });
   await chrome.action.setBadgeBackgroundColor({ color: '#8a8a8a' });
 }
 
@@ -115,7 +117,7 @@ async function onMessage(sock, raw) {
   if (msg.type !== 'command') return;
   const respond = (payload) => sock.readyState === WebSocket.OPEN && sock.send(JSON.stringify({ type: 'result', id: msg.id, ...payload }));
   const fn = actions[msg.action];
-  if (!fn) return respond({ ok: false, error: { message: `Unbekannte Aktion "${msg.action}"` } });
+  if (!fn) return respond({ ok: false, error: { message: `Unknown action "${msg.action}"` } });
   try {
     respond({ ok: true, data: await fn(msg.args || {}) });
   } catch (err) {
@@ -176,7 +178,7 @@ async function cdp(tabId, method, params = {}) {
       try {
         await chrome.debugger.sendCommand({ tabId }, 'Runtime.evaluate', { expression: '1' });
       } catch {
-        throw new Error('An diesem Tab hängt schon ein anderer Debugger (DevTools oder eine andere KI-Erweiterung). Bitte dort beenden.');
+        throw new Error('Another debugger is attached to this tab (DevTools or another AI extension). Close it first.');
       }
     }
   }
@@ -210,9 +212,9 @@ async function tryTab(tabId) {
 async function resolveTab(args) {
   const st = await getState();
   const tab = await tryTab(args.tabId ?? st.currentTabId);
-  if (!tab) throw new Error('Kein aktueller Tab. Erst navigate (öffnet einen Tab) oder select_tab aufrufen.');
+  if (!tab) throw new Error('No current tab. Call navigate (opens a tab) or select_tab first.');
   if (args.tabId != null && args.tabId !== st.currentTabId) await setState({ currentTabId: tab.id });
-  if (tab.url && BLOCKED_URL.test(tab.url)) throw new Error(`Auf ${tab.url} dürfen Erweiterungen nicht zugreifen.`);
+  if (tab.url && BLOCKED_URL.test(tab.url)) throw new Error(`Extensions are not allowed to access ${tab.url}.`);
   return tab;
 }
 
@@ -267,7 +269,7 @@ async function openAgentTab(url) {
 
 function normalizeUrl(url) {
   const u = String(url || '').trim();
-  if (!u) throw new Error('"url" fehlt');
+  if (!u) throw new Error('"url" is missing');
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(u) || /^(about|data|blob|mailto|file):/i.test(u)) return u;
   if (/^(localhost|127\.|0\.0\.0\.0|\[::1\]|10\.|192\.168\.|[a-z0-9-]+(:\d+)?(\/|$))/i.test(u)) return `http://${u}`;
   return `https://${u}`;
@@ -280,8 +282,8 @@ async function inPage(tabId, cmd, args = {}) {
   try {
     [res] = await chrome.scripting.executeScript({ target: { tabId }, func: pageAgent, args: [cmd, args] });
   } catch (err) {
-    if (/error page/i.test(err.message)) throw new Error('Der Tab zeigt eine Fehlerseite (Adresse nicht erreichbar?).');
-    if (/Cannot access|must request permission/i.test(err.message)) throw new Error('Auf diese Seite darf die Erweiterung nicht zugreifen.');
+    if (/error page/i.test(err.message)) throw new Error('The tab shows an error page (address unreachable?).');
+    if (/Cannot access|must request permission/i.test(err.message)) throw new Error('The extension is not allowed to access this page.');
     throw err;
   }
   const r = res?.result;
@@ -297,7 +299,7 @@ async function overlay(tabId, cmd, args = {}) {
 
 const indicate = (tabId, label, extra = {}) => overlay(tabId, 'show', { label, ...extra });
 
-const quote = (s) => `„${String(s ?? '').slice(0, 60)}“`;
+const quote = (s) => t('quote', String(s ?? '').slice(0, 60));
 
 async function pointAt(tabId, info, label, click = true) {
   await indicate(tabId, label, { x: info.x, y: info.y, click });
@@ -340,7 +342,7 @@ function parseKey(combo) {
   let modifiers = 0;
   for (const p of parts) {
     const bit = MOD_BITS[p.trim().toLowerCase()];
-    if (!bit) throw new Error(`Unbekannte Modifikatortaste "${p}"`);
+    if (!bit) throw new Error(`Unknown modifier "${p}"`);
     modifiers |= bit;
   }
   keyName = KEY_ALIASES[keyName.toLowerCase()] || keyName;
@@ -349,7 +351,7 @@ function parseKey(combo) {
     const [kc, code, text] = special;
     return { modifiers, key: code === 'Space' ? ' ' : code, code, windowsVirtualKeyCode: kc, text };
   }
-  if (keyName.length !== 1) throw new Error(`Unbekannte Taste "${keyName}"`);
+  if (keyName.length !== 1) throw new Error(`Unknown key "${keyName}"`);
   const ch = modifiers & 8 ? keyName.toUpperCase() : keyName;
   const upper = keyName.toUpperCase();
   const code = /[A-Z]/.test(upper) ? `Key${upper}` : /[0-9]/.test(keyName) ? `Digit${keyName}` : undefined;
@@ -389,7 +391,7 @@ async function captureScreenshot(tabId, params) {
   } catch {
     await chrome.tabs.update(tabId, { active: true });
     await sleep(300);
-    return withTimeout(cdp(tabId, 'Page.captureScreenshot', params), 15_000, 'Screenshot nicht möglich (Fenster minimiert?)');
+    return withTimeout(cdp(tabId, 'Page.captureScreenshot', params), 15_000, 'Screenshot failed (window minimized?)');
   }
 }
 
@@ -414,13 +416,13 @@ const actions = {
     if (tab) await chrome.tabs.update(tab.id, { url });
     else tab = await openAgentTab(url);
     await setState({ currentTabId: tab.id });
-    const t = (await waitForLoad(tab.id)) || tab;
+    const loaded = (await waitForLoad(tab.id)) || tab;
     let host = url;
     try {
-      host = new URL(t.url || url).host;
+      host = new URL(loaded.url || url).host;
     } catch {}
-    await indicate(t.id, `öffnet ${host}`);
-    return { tabId: t.id, url: t.url, title: t.title, status: t.status };
+    await indicate(loaded.id, t('actOpen', host));
+    return { tabId: loaded.id, url: loaded.url, title: loaded.title, status: loaded.status };
   },
 
   async select_tab({ tabId, active, url }) {
@@ -431,7 +433,7 @@ const actions = {
       const all = await chrome.tabs.query({});
       tab = all.find((t) => t.url === url) || all.find((t) => t.url?.includes(url));
     }
-    if (!tab) throw new Error('Tab nicht gefunden');
+    if (!tab) throw new Error('Tab not found');
     await setState({ currentTabId: tab.id });
     return tabInfo(tab, await getState());
   },
@@ -447,7 +449,7 @@ const actions = {
     if (direction === 'back') await chrome.tabs.goBack(tab.id);
     else if (direction === 'forward') await chrome.tabs.goForward(tab.id);
     else if (direction === 'reload') await chrome.tabs.reload(tab.id);
-    else throw new Error('direction muss back, forward oder reload sein');
+    else throw new Error('direction must be back, forward or reload');
     const t = await waitForLoad(tab.id);
     return { url: t?.url, title: t?.title };
   },
@@ -472,17 +474,17 @@ const actions = {
       info = await inPage(tab.id, 'locate', target(args));
       x = info.x;
       y = info.y;
-    } else if (typeof x !== 'number' || typeof y !== 'number') throw new Error('ref, selector oder x/y angeben');
-    await pointAt(tab.id, { x, y }, `klickt ${info ? quote(info.name) : 'hier'}`);
+    } else if (typeof x !== 'number' || typeof y !== 'number') throw new Error('Pass ref, selector or x/y');
+    await pointAt(tab.id, { x, y }, info ? t('actClick', quote(info.name)) : t('actClickHere'));
     await mouseClick(tab.id, x, y, { button: args.button || 'left', clickCount: args.doubleClick ? 2 : 1 });
     const after = await settle(tab.id, tab);
-    return { clicked: info?.label ?? `(${x}, ${y})`, warning: info?.covered ? `Element war verdeckt von ${info.covered}` : undefined, ...after };
+    return { clicked: info?.label ?? `(${x}, ${y})`, warning: info?.covered ? `Element was covered by ${info.covered}` : undefined, ...after };
   },
 
   async hover(args) {
     const tab = await resolveTab(args);
     const info = await inPage(tab.id, 'locate', target(args));
-    await pointAt(tab.id, info, `zeigt auf ${quote(info.name)}`, false);
+    await pointAt(tab.id, info, t('actHover', quote(info.name)), false);
     await cdp(tab.id, 'Input.dispatchMouseEvent', { type: 'mouseMoved', x: info.x, y: info.y });
     await sleep(300);
     return { hovered: info.label };
@@ -490,17 +492,17 @@ const actions = {
 
   async type(args) {
     const tab = await resolveTab(args);
-    let label = '(fokussiertes Element)';
+    let label = '(focused element)';
     if (args.ref || args.selector) {
       const info = await inPage(tab.id, 'locate', target(args));
       label = info.label;
-      await pointAt(tab.id, info, `tippt in ${quote(info.name)}`);
+      await pointAt(tab.id, info, t('actTypeInto', quote(info.name)));
       await mouseClick(tab.id, info.x, info.y);
       await sleep(50);
     }
     const focus = await inPage(tab.id, 'prepareType', { clear: !!args.clear });
     const text = String(args.text ?? '');
-    if (!(args.ref || args.selector)) await indicate(tab.id, 'tippt');
+    if (!(args.ref || args.selector)) await indicate(tab.id, t('actType'));
     if (text.includes('\n') && focus.kind === 'contenteditable') {
       const lines = text.split('\n');
       for (let i = 0; i < lines.length; i++) {
@@ -517,13 +519,13 @@ const actions = {
   async select_option(args) {
     const tab = await resolveTab(args);
     const info = await inPage(tab.id, 'locate', target(args));
-    await pointAt(tab.id, info, `wählt ${quote(args.value)}`);
+    await pointAt(tab.id, info, t('actSelect', quote(args.value)));
     return inPage(tab.id, 'selectOption', { ...target(args), value: args.value });
   },
 
   async press_key({ key, tabId, repeat = 1 }) {
     const tab = await resolveTab({ tabId });
-    await indicate(tab.id, `drückt ${key}`);
+    await indicate(tab.id, t('actKey', key));
     for (let i = 0; i < Math.min(repeat, 50); i++) await pressKey(tab.id, key);
     return { pressed: key, ...(await settle(tab.id, tab)) };
   },
@@ -535,7 +537,7 @@ const actions = {
     let x, y;
     if (args.ref || args.selector) ({ x, y } = await inPage(tab.id, 'locate', { ...target(args), noScroll: true }));
     else ({ x, y } = await inPage(tab.id, 'viewport', {}));
-    await indicate(tab.id, `scrollt ${{ up: 'nach oben', down: 'nach unten', left: 'nach links', right: 'nach rechts' }[dir] || ''}`);
+    await indicate(tab.id, t({ up: 'actScrollUp', down: 'actScrollDown', left: 'actScrollLeft', right: 'actScrollRight' }[dir] || 'actScrollDown'));
     const deltaX = dir === 'left' ? -amount : dir === 'right' ? amount : 0;
     const deltaY = dir === 'up' ? -amount : dir === 'down' ? amount : 0;
     await cdp(tab.id, 'Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX, deltaY });
@@ -576,12 +578,12 @@ const actions = {
     if (isSyntaxError(r)) r = await run(`(async () => (\n${code}\n))()`);
     if (isSyntaxError(r)) r = await run(`(async () => {\n${code}\n})()`);
     if (r.exceptionDetails) {
-      throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text || 'Fehler beim Ausführen');
+      throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text || 'Evaluation failed');
     }
     const v = r.result;
     let value = v.value !== undefined ? v.value : v.description ?? v.type;
     const json = JSON.stringify(value);
-    if (json && json.length > 50_000) value = json.slice(0, 50_000) + '… (gekürzt)';
+    if (json && json.length > 50_000) value = json.slice(0, 50_000) + '… (truncated)';
     return { type: v.type, value };
   },
 
@@ -597,14 +599,14 @@ const actions = {
       if (found !== gone) return { ok: true, afterMs: Date.now() - start };
       await sleep(250);
     }
-    throw new Error(`Zeitüberschreitung: ${text ? `Text "${text}"` : `Selektor ${selector}`} ${gone ? 'ist noch da' : 'nicht gefunden'}`);
+    throw new Error(`Timed out: ${text ? `text "${text}"` : `selector ${selector}`} ${gone ? 'is still there' : 'not found'}`);
   },
 
   async upload_file(args) {
     const tab = await resolveTab(args);
-    if (!Array.isArray(args.paths) || !args.paths.length) throw new Error('"paths" (Liste absoluter Dateipfade) fehlt');
+    if (!Array.isArray(args.paths) || !args.paths.length) throw new Error('"paths" (list of absolute file paths) is missing');
     const sel = args.ref ? `[data-eb-ref="${args.ref}"]` : args.selector;
-    if (!sel) throw new Error('ref oder selector angeben');
+    if (!sel) throw new Error('Pass ref or selector');
     const expression = `(() => {
       const sel = ${JSON.stringify(sel)};
       const find = (root) => {
@@ -618,9 +620,9 @@ const actions = {
       };
       return find(document);
     })()`;
-    await indicate(tab.id, `lädt ${args.paths.length === 1 ? '1 Datei' : `${args.paths.length} Dateien`} hoch`);
+    await indicate(tab.id, args.paths.length === 1 ? t('actUploadOne') : t('actUploadMany', args.paths.length));
     const r = await cdp(tab.id, 'Runtime.evaluate', { expression });
-    if (!r.result?.objectId) throw new Error(`Element ${sel} nicht gefunden`);
+    if (!r.result?.objectId) throw new Error(`Element ${sel} not found`);
     await cdp(tab.id, 'DOM.setFileInputFiles', { files: args.paths, objectId: r.result.objectId });
     return { uploaded: args.paths.length };
   },

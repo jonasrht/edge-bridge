@@ -1,9 +1,14 @@
 const $ = (id) => document.getElementById(id);
+const t = (key, ...subs) => chrome.i18n.getMessage(key, subs.map(String));
+
+document.documentElement.lang = chrome.i18n.getUILanguage();
+for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+for (const el of document.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = t(el.dataset.i18nPlaceholder);
 
 const STATUS_TEXT = {
-  connected: (p) => `Verbunden als „${p}“`,
-  disconnected: () => 'Nicht verbunden – läuft der edge-bridge-Dienst auf dem Mac?',
-  disabled: () => 'Ausgeschaltet',
+  connected: (p) => t('statusConnected', p),
+  disconnected: () => t('statusDisconnected'),
+  disabled: () => t('statusDisabled'),
 };
 
 async function render() {
@@ -19,9 +24,7 @@ async function init() {
   $('enabled').checked = enabled !== false;
   try {
     const info = await chrome.identity.getProfileUserInfo({ accountStatus: 'ANY' });
-    $('email').textContent = info?.email
-      ? `Angemeldet als ${info.email}. Ohne eigenen Namen nutzt der Agent den Edge-Profilnamen.`
-      : 'Kein Konto erkannt. Bitte einen Namen vergeben, damit der Agent das Profil findet.';
+    $('email').textContent = info?.email ? t('emailKnown', info.email) : t('emailUnknown');
   } catch {
     $('email').textContent = '';
   }
@@ -38,7 +41,7 @@ $('tabMode').addEventListener('change', () => chrome.storage.local.set({ tabMode
 $('showWindow').addEventListener('click', async () => {
   const { currentTabId } = await chrome.storage.session.get('currentTabId');
   const tab = currentTabId != null ? await chrome.tabs.get(currentTabId).catch(() => null) : null;
-  if (!tab) return ($('status').textContent = 'Der Agent hat gerade keinen Tab offen.');
+  if (!tab) return ($('status').textContent = t('noAgentTab'));
   await chrome.tabs.update(tab.id, { active: true });
   await chrome.windows.update(tab.windowId, { focused: true });
 });

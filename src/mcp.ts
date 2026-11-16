@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { call } from './client.ts';
 
-const server = new McpServer({ name: 'edge-bridge', version: '0.1.0' });
+const server = new McpServer({ name: 'edge-bridge', version: '0.2.0' });
 
 const profile = z
   .string()
